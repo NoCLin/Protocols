@@ -1,0 +1,5 @@
+flake8
+black
+mypy
+requests[socks]
+types-requests

@@ -7,3 +7,5 @@ The asyncio implementation of various popular protocols in Python.
 - Reverse Proxy Server
 - PostgreSQL Wire Protocol Server
 - PostgreSQL Wire Protocol Client
+
+WARNING: the code is not production ready.
