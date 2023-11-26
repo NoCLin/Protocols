@@ -26,6 +26,8 @@ jobs:
         run: pip install -r requirements.test.txt
 
       - name: Style check
-        run: make style_check
+        run: |
+          mypy --install-types
+          make style_check
       - name: Run Test
         run: make test
