@@ -3,7 +3,7 @@ import logging
 from asyncio import StreamReader, StreamWriter
 from contextlib import closing
 
-import async_timeout
+import async_timeout  # type:ignore
 
 from protocols.forward import relay_stream
 from protocols.http_proxy.parser import HttpRequest, extract_username_password
