@@ -2,6 +2,7 @@ import asyncio
 import logging
 from asyncio import StreamReader, StreamWriter
 from contextlib import closing
+from typing import Optional, Callable
 
 import async_timeout  # type:ignore
 
@@ -12,7 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class HttpProxyServerProtocol(asyncio.StreamReaderProtocol):
-    def __init__(self, on_accept=None, on_auth=None, on_connect=None):
+    def __init__(
+        self,
+        on_accept: Optional[Callable[[str, int], bool]] = None,
+        on_auth: Optional[Callable[[str, str], bool]] = None,
+        on_connect: Optional[Callable[[str, int], bool]] = None,
+    ):
         self.reader = StreamReader()
         super().__init__(self.reader, self.handler)
 
@@ -27,7 +33,7 @@ class HttpProxyServerProtocol(asyncio.StreamReaderProtocol):
     async def _handler(self, reader: StreamReader, writer: StreamWriter) -> None:
         addr = writer.get_extra_info("peername")
         if self.on_accept:
-            if not self.on_accept(addr):
+            if not self.on_accept(addr[0], addr[1]):
                 return
 
         data = await reader.readuntil(b"\r\n\r\n")
@@ -111,7 +117,7 @@ async def main():
     loop = asyncio.get_event_loop()
     server = await loop.create_server(
         lambda: HttpProxyServerProtocol(
-            on_accept=lambda u: True, on_connect=lambda h, p: True
+            on_accept=lambda a, p: True, on_connect=lambda a, p: True
         ),
         host,
         port,

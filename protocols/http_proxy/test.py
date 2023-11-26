@@ -17,9 +17,7 @@ class TestHTTPProxyServer(unittest.TestCase):
 
         async def test():
             self.server = await self.loop.create_server(
-                lambda: HttpProxyServerProtocol(
-                    on_accept=lambda u: True, on_connect=lambda h, p: True
-                ),
+                lambda: HttpProxyServerProtocol(),
                 "127.0.0.1",
                 8080,
             )
