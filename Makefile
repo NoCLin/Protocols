@@ -1,5 +1,7 @@
 lint:
 	black . --exclude venv
+	mypy . --check-untyped-defs --exclude venv
+	flake8 . --exclude=venv
 style_check:
 	black . --exclude venv --check
 	mypy . --check-untyped-defs --exclude venv
