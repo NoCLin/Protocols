@@ -5,27 +5,28 @@ from unittest import mock
 
 import requests
 
-from protocols.reverse_proxy.server import ReverseProxyProtocol
+from protocols.socks5_server.server import Socks5ProxyServerProtocol
 from protocols.stream_utils import create_stream_reader_from_file
 
 
-def request_reverse_proxy():
+def request_with_socks5_proxy():
     return requests.get(
-        "http://127.0.0.1:8088",
+        "http://127.0.0.1",
+        proxies={"http": "socks5://127.0.0.1:1080"},
         headers={"User-Agent": "test"},
     )
 
 
-class TestReverseServer(unittest.TestCase):
+class TestSocks5Server(unittest.TestCase):
     def setUp(self):
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
 
         async def test():
             self.server = await self.loop.create_server(
-                lambda: ReverseProxyProtocol(target_host="127.0.0.1", target_port=80),
+                lambda: Socks5ProxyServerProtocol(),
                 "127.0.0.1",
-                8088,
+                1080,
             )
             self.server_task = self.loop.create_task(self.server.serve_forever())
 
@@ -40,8 +41,7 @@ class TestReverseServer(unittest.TestCase):
         self.loop.close()
 
     def test_server_response(self):
-        w = mock.AsyncMock(asyncio.StreamWriter)
-
+        w = mock.AsyncMock(spec_set=asyncio.StreamWriter)
         r = create_stream_reader_from_file(
             os.path.join(os.path.dirname(__file__), "../tests/fixtures", "http.bin")
         )
@@ -66,32 +66,37 @@ class TestReverseServer(unittest.TestCase):
                 proxy_response_body = """<html>
 <meta http-equiv="refresh" content="0;url=http://www.baidu.com/">
 </html>"""
-
+                # in socks5 proxy the Connection field will keep as is
                 proxy_request_header = (
                     b"GET / HTTP/1.1\r\n"
-                    b"Host: 127.0.0.1:8088\r\n"
+                    b"Host: 127.0.0.1\r\n"
                     b"User-Agent: test\r\n"
                     b"Accept-Encoding: gzip, deflate\r\n"
                     b"Accept: */*\r\n"
                     b"Connection: keep-alive\r\n\r\n"
                 )
 
-                response = await self.loop.run_in_executor(None, request_reverse_proxy)
+                response = await self.loop.run_in_executor(
+                    None, request_with_socks5_proxy
+                )
 
+                # self.assertEqual(self.main_handler.call_count, 1)
                 self.assertEqual(mocked_open_connection.call_count, 1)
                 self.assertEqual(1, len(mocked_open_connection.call_args_list))
                 self.assertEqual(
                     ("127.0.0.1", 80), mocked_open_connection.call_args_list[0][0]
                 )
 
-                self.assertEqual(200, response.status_code)
-                self.assertEqual(proxy_response_header, response.headers)
-                self.assertEqual(proxy_response_body, response.text)
-
-                self.assertEqual(2, len(w.method_calls))
+                self.assertEqual(
+                    2, len(w.method_calls), "w.method_calls" + str(w.method_calls)
+                )
                 self.assertEqual("write", w.method_calls[0][0])
                 self.assertEqual((proxy_request_header,), w.method_calls[0][1])
                 self.assertEqual("drain", w.method_calls[1][0])
+
+                self.assertEqual(200, response.status_code)
+                self.assertEqual(proxy_response_header, response.headers)
+                self.assertEqual(proxy_response_body, response.text)
 
             self.loop.run_until_complete(test())
 

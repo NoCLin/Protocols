@@ -2,6 +2,7 @@ import asyncio
 import logging
 from asyncio import StreamReader, StreamWriter
 from contextlib import closing
+from typing import Optional, Callable
 
 from protocols.forward import relay_stream
 
@@ -9,7 +10,12 @@ logger = logging.getLogger(__name__)
 
 
 class ReverseProxyProtocol(asyncio.StreamReaderProtocol):
-    def __init__(self, target_host: str, target_port: int, on_accept=None):
+    def __init__(
+        self,
+        target_host: str,
+        target_port: int,
+        on_accept: Optional[Callable[[str, int], bool]] = None,
+    ):
         self.reader = StreamReader()
         super().__init__(self.reader, self.handler)
 
@@ -24,7 +30,7 @@ class ReverseProxyProtocol(asyncio.StreamReaderProtocol):
     async def _handler(self, reader: StreamReader, writer: StreamWriter) -> None:
         addr = writer.get_extra_info("peername")
         if self.on_accept:
-            if not self.on_accept(addr):
+            if not self.on_accept(addr[0], addr[1]):
                 return
         await self.forward(reader, writer)
 
