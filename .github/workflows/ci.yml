@@ -30,6 +30,6 @@ jobs:
 
       - name: Style check
         run: |
-          make style_check
+          poetry run make style_check
       - name: Run Test
-        run: make test
+        run: poetry run make test
