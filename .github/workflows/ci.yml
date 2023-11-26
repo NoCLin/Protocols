@@ -27,7 +27,6 @@ jobs:
 
       - name: Style check
         run: |
-          mypy --install-types
           make style_check
       - name: Run Test
         run: make test
