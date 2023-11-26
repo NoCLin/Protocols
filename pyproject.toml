@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "protocols"
+version = "0.1.0"
+description = ""
+authors = ["Junlin <liu@junl.in>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+async-timeout = "^4.0.3"
+
+
+[tool.poetry.group.dev.dependencies]
+requests = {extras = ["socks"], version = "^2.31.0"}
+flake8 = "^6.1.0"
+black = "^23.11.0"
+mypy = "^1.7.1"
+types-requests = "^2.31.0.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,11 +1,11 @@
 lint:
-	black . --exclude venv
-	mypy . --check-untyped-defs --exclude venv
-	flake8 . --exclude=venv
+	black . --exclude .venv
+	mypy . --check-untyped-defs --exclude .venv
+	flake8 . --exclude=.venv
 style_check:
-	black . --exclude venv --check
-	mypy . --check-untyped-defs --exclude venv
-	flake8 . --exclude=venv
+	black . --exclude .venv --check
+	mypy . --check-untyped-defs --exclude .venv
+	flake8 . --exclude=.venv
 ci:
 	make test
 test:
